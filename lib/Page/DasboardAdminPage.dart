@@ -5,6 +5,7 @@ class DashboardAdminPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           'Dashboard',
@@ -39,17 +40,6 @@ class DashboardAdminPage extends StatelessWidget {
       ),
       body: Container(
         padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.grey.withOpacity(0.5),
-              spreadRadius: 2,
-              blurRadius: 5,
-            ),
-          ],
-        ),
         child: DashboardAdmindItem(),
       ),
     );
