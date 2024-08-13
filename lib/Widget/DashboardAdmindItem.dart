@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 class DashboardAdmindItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width; // Menambahkan ukuran layar
-    final screenHeight = MediaQuery.of(context).size.height; // Menambahkan tinggi layar
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       body: SingleChildScrollView(
-        child: Container( // Menambahkan Container untuk mengatur ukuran
-          width: screenWidth, // Mengatur lebar responsif
-          height: screenHeight, // Mengatur tinggi responsif
+        child: Container(
+          width: screenWidth,
+          height: screenHeight,
           child: Column(
             children: [
               TextField(
@@ -25,9 +25,9 @@ class DashboardAdmindItem extends StatelessWidget {
                   contentPadding: EdgeInsets.symmetric(vertical: 8),
                 ),
               ),
-              SizedBox(height: 20), 
+              SizedBox(height: 20),
               Container(
-                width: screenWidth * 0.9, // Mengatur lebar responsif
+                width: screenWidth * 0.9,
                 height: 100,
                 child: Stack(
                   children: [
@@ -35,7 +35,7 @@ class DashboardAdmindItem extends StatelessWidget {
                       left: 0,
                       top: 0,
                       child: Container(
-                        width: screenWidth * 0.9, // Mengatur lebar responsif
+                        width: screenWidth * 0.9,
                         height: 100,
                         decoration: ShapeDecoration(
                           color: Colors.white,
@@ -102,10 +102,15 @@ class DashboardAdmindItem extends StatelessWidget {
                     Positioned(
                       left: screenWidth * 0.8,
                       top: 40,
-                      child: Icon( // Mengganti Container dengan Icon
-                        Icons.edit, // Menggunakan ikon edit
-                        size: 25,
-                        color: Colors.red, // Menentukan warna ikon
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.pushNamed(context, 'editbarangadminPage');
+                        },
+                        child: Icon(
+                          Icons.edit,
+                          size: 25,
+                          color: Colors.red,
+                        ),
                       ),
                     ),
                   ],

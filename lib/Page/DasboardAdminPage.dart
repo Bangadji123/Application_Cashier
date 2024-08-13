@@ -16,7 +16,7 @@ class DashboardAdminPage extends StatelessWidget {
         ),
         backgroundColor: Colors.blue,
         automaticallyImplyLeading: false,
-        toolbarHeight: 65, 
+        toolbarHeight: 70, 
         actions: [
           IconButton(
             icon: Icon(
