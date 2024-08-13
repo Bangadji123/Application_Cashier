@@ -69,7 +69,7 @@ class EditBarangAdminItem extends StatelessWidget {
                 fontWeight: FontWeight.w500,
                 color: Colors.black.withOpacity(0.8),
               ),
-            ),
+            ),  
             SizedBox(height: 10),
             TextField(
               style: TextStyle(fontWeight: FontWeight.bold),

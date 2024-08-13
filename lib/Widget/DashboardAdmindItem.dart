@@ -6,117 +6,120 @@ class DashboardAdmindItem extends StatelessWidget {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          width: screenWidth,
-          height: screenHeight,
-          child: Column(
-            children: [
-              TextField(
-                decoration: InputDecoration(
-                  hintText: 'Masukan Nama',
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey),
+      body: ScrollConfiguration(
+        behavior: ScrollBehavior().copyWith(overscroll: false),
+        child: SingleChildScrollView(
+          child: Container(
+            width: screenWidth,
+            height: screenHeight,
+            child: Column(
+              children: [
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Masukan Nama',
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.grey),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.blue),
+                    ),
+                    isDense: true,
+                    contentPadding: EdgeInsets.symmetric(vertical: 8),
                   ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
                 ),
-              ),
-              SizedBox(height: 20),
-              Container(
-                width: screenWidth * 0.9,
-                height: 100,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: Container(
-                        width: screenWidth * 0.9,
-                        height: 100,
-                        decoration: ShapeDecoration(
-                          color: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              width: 1,
-                              color: Colors.black.withOpacity(0.1),
+                SizedBox(height: 20),
+                Container(
+                  width: screenWidth * 0.9,
+                  height: 100,
+                  child: Stack(
+                    children: [
+                      Positioned(
+                        left: 0,
+                        top: 0,
+                        child: Container(
+                          width: screenWidth * 0.9,
+                          height: 100,
+                          decoration: ShapeDecoration(
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(
+                                width: 1,
+                                color: Colors.black.withOpacity(0.1),
+                              ),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            borderRadius: BorderRadius.circular(10),
+                            shadows: [
+                              BoxShadow(
+                                color: Color(0x3F000000),
+                                blurRadius: 4,
+                                offset: Offset(0, 4),
+                                spreadRadius: 0,
+                              )
+                            ],
                           ),
-                          shadows: [
-                            BoxShadow(
-                              color: Color(0x3F000000),
-                              blurRadius: 4,
-                              offset: Offset(0, 4),
-                              spreadRadius: 0,
-                            )
-                          ],
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: 20,
-                      top: 42,
-                      child: Text(
-                        'Stok: 100',
-                        style: TextStyle(
-                          color: Colors.black.withOpacity(0.8),
-                          fontSize: 15,
-                          fontFamily: 'Lato',
-                          fontWeight: FontWeight.w400,
-                          height: 0,
+                      Positioned(
+                        left: 20,
+                        top: 42,
+                        child: Text(
+                          'Stok: 100',
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.8),
+                            fontSize: 15,
+                            fontFamily: 'Lato',
+                            fontWeight: FontWeight.w400,
+                            height: 0,
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: 20,
-                      top: 70,
-                      child: Text(
-                        'Rp. 3.000/pcs',
-                        style: TextStyle(
-                          color: Colors.black.withOpacity(0.8),
-                          fontSize: 15,
-                          fontFamily: 'Lato',
-                          fontWeight: FontWeight.w400,
-                          height: 0,
+                      Positioned(
+                        left: 20,
+                        top: 70,
+                        child: Text(
+                          'Rp. 3.000/pcs',
+                          style: TextStyle(
+                            color: Colors.black.withOpacity(0.8),
+                            fontSize: 15,
+                            fontFamily: 'Lato',
+                            fontWeight: FontWeight.w400,
+                            height: 0,
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: 20,
-                      top: 10,
-                      child: Text(
-                        'Indomie',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontFamily: 'Lato',
-                          fontWeight: FontWeight.w600,
-                          height: 0,
+                      Positioned(
+                        left: 20,
+                        top: 10,
+                        child: Text(
+                          'Indomie',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 18,
+                            fontFamily: 'Lato',
+                            fontWeight: FontWeight.w600,
+                            height: 0,
+                          ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      left: screenWidth * 0.8,
-                      top: 40,
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, 'editbarangadminPage');
-                        },
-                        child: Icon(
-                          Icons.edit,
-                          size: 25,
-                          color: Colors.red,
+                      Positioned(
+                        left: screenWidth * 0.8,
+                        top: 40,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, 'editbarangadminPage');
+                          },
+                          child: Icon(
+                            Icons.edit,
+                            size: 25,
+                            color: Colors.red,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
