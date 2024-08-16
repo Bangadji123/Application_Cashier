@@ -1,6 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class RegisterPage extends StatelessWidget {
+class RegisterPage extends StatefulWidget {
+  @override
+  _RegisterPageState createState() => _RegisterPageState();
+}
+
+class _RegisterPageState extends State<RegisterPage> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,15 +23,15 @@ class RegisterPage extends StatelessWidget {
               children: [
                 _buildLogo(),
                 SizedBox(height: 20),
-                _buildInputField('Username'),
+                _buildInputField('Username', controller: _usernameController),
                 SizedBox(height: 10),
-                _buildInputField('Password', isPassword: true),
+                _buildInputField('Password', isPassword: true, controller: _passwordController),
                 SizedBox(height: 10),
-                _buildInputField('Konfirmasi Password', isPassword: true),
+                _buildInputField('Konfirmasi Password', isPassword: true, controller: _confirmPasswordController),
                 SizedBox(height: 20),
                 _buildRegisterButton(),
                 SizedBox(height: 20),
-                _buildLoginPrompt(context),
+                _buildLoginPrompt(),
               ],
             ),
           ),
@@ -40,7 +50,7 @@ class RegisterPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInputField(String hintText, {bool isPassword = false}) {
+  Widget _buildInputField(String hintText, {bool isPassword = false, required TextEditingController controller}) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -54,6 +64,7 @@ class RegisterPage extends StatelessWidget {
         ],
       ),
       child: TextField(
+        controller: controller,
         obscureText: isPassword,
         decoration: InputDecoration(
           hintText: hintText,
@@ -63,7 +74,7 @@ class RegisterPage extends StatelessWidget {
             fontFamily: 'Lato',
             fontWeight: FontWeight.w500,
           ),
-          border: InputBorder.none, // Menghapus border
+          border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         ),
       ),
@@ -72,9 +83,7 @@ class RegisterPage extends StatelessWidget {
 
   Widget _buildRegisterButton() {
     return ElevatedButton(
-      onPressed: () {
-        // Implementasi logika registrasi
-      },
+      onPressed: _registerUser,
       style: ElevatedButton.styleFrom(
         backgroundColor: Color(0xFF3FA2F6),
         foregroundColor: Colors.white,
@@ -94,7 +103,7 @@ class RegisterPage extends StatelessWidget {
     );
   }
 
-  Widget _buildLoginPrompt(BuildContext context) {
+  Widget _buildLoginPrompt() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -122,5 +131,62 @@ class RegisterPage extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _registerUser() async {
+    final username = _usernameController.text;
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+
+    if (password != confirmPassword) {
+      _showErrorDialog('Passwords do not match');
+      return;
+    }
+
+    try {
+      final response = await Supabase.instance.client
+          .from('tbl_adminpetugas')
+          .insert({
+            'Nama_Username': username,
+            'Password': password,
+            'Konfirm_Password': confirmPassword,
+          });
+
+      print('Response: $response'); // Tambahkan log ini
+
+      if (response != null && response.error == null) {
+        print('User registered: $username');
+        Navigator.pushNamed(context, 'dashboardadmindPage');
+      } else {
+        _showErrorDialog('Registration failed: ${response?.error?.message ?? 'Unknown error'}');
+      }
+    } catch (e) {
+      print('Error during registration: $e');
+      _showErrorDialog('An error occurred: $e');
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 }

@@ -1,6 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // Tambahkan import Supabase
 
 class LoginAdminPage extends StatelessWidget {
+  final SupabaseClient client =
+      Supabase.instance.client; // Inisialisasi SupabaseClient
+  final TextEditingController usernameController =
+      TextEditingController(); // Kontroler untuk username
+  final TextEditingController passwordController =
+      TextEditingController(); // Kontroler untuk password
+
+  Future<void> login(BuildContext context) async {
+    final response = await client.auth.signInWithPassword(
+      email: usernameController.text,
+      password: passwordController.text,
+    );
+
+    try {
+      await Supabase.instance.client.from('your_table_name').insert({
+        'Nama_Username': usernameController
+            .text, // Ganti 'username' dengan 'usernameController.text'
+        'Password': passwordController
+            .text, // Ganti 'password' dengan 'passwordController.text'
+      });
+      Navigator.pushNamed(context, 'dashboardadmindPage');
+    } // Tambahkan penutup try
+    catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Registration failed: ${e.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,6 +69,7 @@ class LoginAdminPage extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15),
                     child: TextField(
+                      controller: usernameController, // Tambahkan kontroler
                       decoration: InputDecoration(
                         hintText: 'Username',
                         border: InputBorder.none,
@@ -68,6 +99,7 @@ class LoginAdminPage extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(15),
                     child: TextField(
+                      controller: passwordController, // Tambahkan kontroler
                       obscureText: true,
                       decoration: InputDecoration(
                         hintText: 'Password',
@@ -84,9 +116,7 @@ class LoginAdminPage extends StatelessWidget {
                 SizedBox(height: 20),
                 // Login button
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, 'dashboardadmindPage');
-                  },
+                  onPressed: () => login(context), // Panggil fungsi login
                   child: Text(
                     'Login',
                     style: TextStyle(
