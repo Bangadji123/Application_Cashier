@@ -1,178 +1,229 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // Tambahkan import Supabase
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:application_cashier/Admin/Page/DasboardAdminPage.dart';
+import 'package:application_cashier/Login_&_Register/RegisterPage.dart';
 
-class LoginAdminPage extends StatelessWidget {
-  final SupabaseClient client =
-      Supabase.instance.client; // Inisialisasi SupabaseClient
-  final TextEditingController usernameController =
-      TextEditingController(); // Kontroler untuk username
-  final TextEditingController passwordController =
-      TextEditingController(); // Kontroler untuk password
+class LoginAdminPage extends StatefulWidget {
+  const LoginAdminPage({Key? key}) : super(key: key);
 
-  Future<void> login(BuildContext context) async {
-    final response = await client.auth.signInWithPassword(
-      email: usernameController.text,
-      password: passwordController.text,
-    );
+  @override
+  _LoginAdminPageState createState() => _LoginAdminPageState();
+}
 
-    try {
-      await Supabase.instance.client.from('your_table_name').insert({
-        'Nama_Username': usernameController
-            .text, // Ganti 'username' dengan 'usernameController.text'
-        'Password': passwordController
-            .text, // Ganti 'password' dengan 'passwordController.text'
-      });
-      Navigator.pushNamed(context, 'dashboardadmindPage');
-    } // Tambahkan penutup try
-    catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registration failed: ${e.toString()}')),
-      );
+class _LoginAdminPageState extends State<LoginAdminPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _obscureText = true; // This controls the visibility of the password
+
+  Future<void> _login() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final response = await Supabase.instance.client
+            .from('tbl_adminpetugas')
+            .select()
+            .eq('Nama_Username', _usernameController.text)
+            .eq('Password', _passwordController.text)
+            .limit(1);
+
+        if (response.isNotEmpty) {
+          _showPopup('Login successful');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => DashboardAdminPage()),
+          );
+        } else {
+          _showPopup('Invalid username or password');
+        }
+      } catch (e) {
+        print('Login error: $e');
+        _showPopup('Error: ${e.toString()}');
+      }
     }
+  }
+
+  void _showPopup(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Notification'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: 40),
-                // Logo
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: Image.asset(
-                    "Image/1.png",
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: 250,
-                  ),
-                ),
-                SizedBox(height: 40),
-                // Username field
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: TextField(
-                      controller: usernameController, // Tambahkan kontroler
-                      decoration: InputDecoration(
-                        hintText: 'Username',
-                        border: InputBorder.none,
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-                      ),
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                // Password field
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 1,
-                        blurRadius: 5,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: TextField(
-                      controller: passwordController, // Tambahkan kontroler
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: 'Password',
-                        border: InputBorder.none,
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-                      ),
-                      style: TextStyle(fontSize: 16),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                // Login button
-                ElevatedButton(
-                  onPressed: () => login(context), // Panggil fungsi login
-                  child: Text(
-                    'Login',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF3FA2F6),
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                // Register link
-                Row(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenSize.width * 0.1,
+                vertical: screenSize.height * 0.05,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text('Belum punya akun?'),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, 'registerPage');
+                    Image.asset(
+                      'Image/1.png',
+                      width: screenSize.width * 0.5,
+                      height: screenSize.height * 0.3,
+                    ),
+
+                    // Username
+                    SizedBox(height: 20),
+                    TextFormField(
+                      controller: _usernameController,
+                      decoration: InputDecoration(
+                        labelText: 'Username',
+                        labelStyle: TextStyle(
+                          fontSize: 20,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 20,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your username';
+                        }
+                        return null;
                       },
-                      child: Text(
-                        'Daftar',
+                    ),
+
+                    // Password
+                    SizedBox(height: 10),
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        labelStyle: TextStyle(
+                          fontSize: 20,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 20,
+                        ),
+                        suffixIcon: Padding(
+                          padding: const EdgeInsets.only(right: 10), // Add space to the right
+                          child: IconButton(
+                            icon: Icon(
+                              _obscureText
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscureText = !_obscureText;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                      obscureText: _obscureText,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    // Login Btn
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _login,
+                      child: const Text(
+                        'Login',
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF3FA2F6),
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF3FA2F6),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 20,
                         ),
                       ),
                     ),
+
+                    // Register Btn
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Belum Punya Akun?',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RegisterPage(),
+                              ),
+                            );
+                          },
+                          child: const Text(
+                            'Register',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-                // Login as staff
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    'Login sebagai Petugas',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Color(0xFF3FA2F6),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

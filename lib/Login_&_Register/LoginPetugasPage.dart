@@ -85,7 +85,7 @@ class LoginPetugasPage extends StatelessWidget {
                 // Login button
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, 'dashboardpetugasPage');
+                    Navigator.pushNamed(context, 'dashboardadmindPage');
                   },
                   child: Text(
                     'Login',

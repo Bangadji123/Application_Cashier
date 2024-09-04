@@ -1,9 +1,8 @@
 import 'package:application_cashier/Login_&_Register/LoginAdminPage.dart';
 import 'package:application_cashier/Login_&_Register/RegisterPage.dart';
-import 'package:application_cashier/Login_&_Register/LoginPetugasPage.dart';
-import 'package:application_cashier/Page/DasboardAdminPage.dart';
-import 'package:application_cashier/Page/DasboardPetugasPage.dart';
-import 'package:application_cashier/Page/EditBarangAdminPage.dart';
+import 'package:application_cashier/Admin/Page/DasboardAdminPage.dart';
+import 'package:application_cashier/Admin/Page/EditBarangAdminPage.dart';
+import 'package:application_cashier/Admin/Page/TambahBarangAdminPage.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; // Tambahkan import Supabase
 
@@ -16,6 +15,9 @@ void main() async {
   runApp(MyApp());
 }
 
+// Get a reference your Supabase client
+final supabase = Supabase.instance.client;
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -23,12 +25,12 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => LoginPetugasPage(),
+        '/': (context) => LoginAdminPage(),
         'registerPage': (context) => RegisterPage(),
         'loginadminPage': (context) => LoginAdminPage(),
-        'dashboardpetugasPage': (context) => DasboardPetugasPage(),
         'dashboardadmindPage': (context) => DashboardAdminPage(),
-        'editbarangadminPage':(context) => EditBarangAdminPage(),
+        'editbarangadminPage':(context) => EditBarangAdminPage(product: {},),
+        'tambahbarangadminPage':(context) => TambahBarangAdminPage(),
       },
       // theme: ThemeData(
       //   backgroundColor: Colors.white,
