@@ -21,9 +21,12 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
   @override
   void initState() {
     super.initState();
-    _namaController = TextEditingController(text: widget.product['Nama_Produk'] as String? ?? '');
-    _stokController = TextEditingController(text: (widget.product['Stok_Produk'] as int?)?.toString() ?? '');
-    _hargaController = TextEditingController(text: (widget.product['Harga_Produk'] as int?)?.toString() ?? '');
+    _namaController = TextEditingController(
+        text: widget.product['Nama_Produk'] as String? ?? '');
+    _stokController = TextEditingController(
+        text: widget.product['Stok_Produk'] as String? ?? '');
+    _hargaController = TextEditingController(
+        text: (widget.product['Harga_Produk'] as int?)?.toString() ?? '');
     _selectedSatuan = widget.product['Satuan'] as String? ?? 'Pcs';
   }
 
@@ -41,34 +44,28 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
         _isLoading = true;
       });
       try {
-        int? stok = int.tryParse(_stokController.text);
-        int? harga = int.tryParse(_hargaController.text);
-
-        Map<String, dynamic> updateData = {
-          'Nama_Produk': _namaController.text,
-          'Satuan': _selectedSatuan,
-        };
-
-        if (stok != null) updateData['Stok_Produk'] = stok;
-        if (harga != null) updateData['Harga_Produk'] = harga;
-
         final response = await Supabase.instance.client
             .from('tbl_produk')
-            .update(updateData)
+            .update({
+              'Nama_Produk': _namaController.text,
+              'Stok_Produk': _stokController.text, // Changed to text
+              'Harga_Produk': int.parse(_hargaController.text),
+              'Satuan': _selectedSatuan,
+            })
             .eq('id', widget.product['id'])
             .execute();
 
-        if (response.status != 200 && response.status != 201) {
-          throw Exception('Failed to update product: ${response.status}');
-        } else {
+        if (response.data == null) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Produk berhasil diperbarui')),
+            SnackBar(content: Text('Barang berhasil diupdate')),
           );
           Navigator.pop(context, true);
+        } else {
+          throw Exception(response.data!.message);
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal memperbarui produk: $e')),
+          SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
         );
       } finally {
         setState(() {
@@ -89,17 +86,17 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
           .eq('id', widget.product['id'])
           .execute();
 
-      if (response.status != 200 && response.status != 204) {
-        throw Exception('Failed to delete product: ${response.status}');
+      if (response.hashCode == null) {
+        throw Exception(response.data!.message);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Produk berhasil dihapus')),
+          SnackBar(content: Text('Barang berhasil dihapus')),
         );
         Navigator.pop(context, true);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal menghapus produk: $e')),
+        SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
       );
     } finally {
       setState(() {
@@ -126,7 +123,9 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
         backgroundColor: Colors.blue,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.pop(context);
+          },
         ),
         toolbarHeight: 70,
       ),
@@ -141,12 +140,13 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildTextField('Nama Barang', _namaController),
-                      _buildTextField('Stok Barang', _stokController, isNumeric: true),
-                      _buildTextField('Harga Barang', _hargaController, isNumeric: true, prefix: 'Rp. '),
+                      _buildTextField('Stok Barang', _stokController),
+                      _buildTextField('Harga Barang', _hargaController,
+                          isNumeric: true, prefix: 'Rp. '),
                       _buildDropdown(),
-                      SizedBox(height: 40),
+                      SizedBox(height: 25),
                       _buildDeleteButton(),
-                      SizedBox(height: 40),
+                      SizedBox(height: 50),
                       _buildConfirmButton(screenWidth, screenHeight),
                     ],
                   ),
@@ -156,10 +156,12 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isNumeric = false, String? prefix}) {
+  Widget _buildTextField(String label, TextEditingController controller,
+      {bool isNumeric = false, String? prefix}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height: 20),
         Text(
           label,
           style: TextStyle(
@@ -171,13 +173,13 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
         SizedBox(height: 10),
         TextFormField(
           controller: controller,
-          keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
           style: TextStyle(fontWeight: FontWeight.bold),
+          keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
           decoration: InputDecoration(
             prefixText: prefix,
             prefixStyle: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 18,
+              fontSize: 15,
               color: Colors.black.withOpacity(0.8),
             ),
             enabledBorder: UnderlineInputBorder(
@@ -186,13 +188,15 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey),
             ),
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 8),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) {
               return 'Field ini tidak boleh kosong';
             }
             if (isNumeric && int.tryParse(value) == null) {
-              return 'Masukkan angka yang valid';
+              return 'Field ini hanya boleh berisi angka';
             }
             return null;
           },
@@ -206,6 +210,7 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height: 20),
         Text(
           'Harga Per Satuan',
           style: TextStyle(
@@ -228,23 +233,31 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
             focusedBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey),
             ),
+            isDense: true,
+            contentPadding: EdgeInsets.symmetric(vertical: 8),
           ),
-          items: <String>['Kg', 'Liter', 'Pcs', 'Box']
-              .map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
+          items: <String>[
+            'Kg',
+            'Liter',
+            'Pcs',
+            'Box',
+            'Botol',
+            'Rim',
+            'Kantong'
+          ].map<DropdownMenuItem<String>>(
+            (String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            },
+          ).toList(),
           onChanged: (String? newValue) {
-            if (newValue != null) {
-              setState(() {
-                _selectedSatuan = newValue;
-              });
-            }
+            setState(() {
+              _selectedSatuan = newValue!;
+            });
           },
         ),
-        SizedBox(height: 20),
       ],
     );
   }
@@ -296,7 +309,7 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
         GestureDetector(
           onTap: _updateProduct,
           child: Container(
-            width: screenWidth * 0.4,
+            width: screenWidth * 0.8,
             height: screenHeight * 0.08,
             decoration: ShapeDecoration(
               color: Color(0xFF3FA2F6),

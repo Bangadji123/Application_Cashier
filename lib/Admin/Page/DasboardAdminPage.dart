@@ -1,3 +1,4 @@
+import 'package:application_cashier/Admin/Page/EditBarangAdminPage.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:application_cashier/Admin/Widget/Sidebar.dart';
@@ -40,7 +41,8 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
 
       if (response.data != null) {
         setState(() {
-          _products = (response.data as List<dynamic>).cast<Map<String, dynamic>>();
+          _products =
+              (response.data as List<dynamic>).cast<Map<String, dynamic>>();
           _filteredProducts = _products;
           _isLoading = false;
         });
@@ -89,19 +91,24 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.fromLTRB(15, 20, 15, 0),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Cari Produk',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                hintText: 'Masukan Nama',
+                enabledBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey, width: 2),
                 ),
+                focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 8),
               ),
               onChanged: _filterProducts,
             ),
           ),
+          SizedBox(height: 16), // Add space between search bar and content
           Expanded(
             child: _isLoading
                 ? Center(child: CircularProgressIndicator())
@@ -121,12 +128,14 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
                           ),
                   ),
           ),
+          SizedBox(height: 20),
         ],
       ),
     );
   }
 
   Widget _buildProductCard(Map<String, dynamic> product, double screenWidth) {
+    SizedBox(height: 20);
     return Container(
       width: screenWidth * 0.9,
       height: 100,
@@ -171,7 +180,7 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
             left: 20,
             top: 42,
             child: Text(
-              'Stok: ${product['Stok_Produk'] ?? 0}',
+              'Stok: ${product['Stok_Produk'] ?? '0'}',
               style: TextStyle(
                 color: Colors.black.withOpacity(0.8),
                 fontSize: 15,
@@ -197,16 +206,16 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
             right: 20,
             top: 40,
             child: GestureDetector(
-              onTap: () {
-                Navigator.pushNamed(
+              onTap: () async {
+                final result = await Navigator.push(
                   context,
-                  'editbarangadminPage',
-                  arguments: product,
-                ).then((value) {
-                  if (value == true) {
-                    _loadProducts();
-                  }
-                });
+                  MaterialPageRoute(
+                    builder: (context) => EditBarangAdminPage(product: product),
+                  ),
+                );
+                if (result == true) {
+                  _loadProducts();
+                }
               },
               child: Icon(
                 Icons.edit,

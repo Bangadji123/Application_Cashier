@@ -48,10 +48,11 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTextField('Nama Barang', _namaController),
-                _buildTextField('Stok Barang', _stokController, isNumeric: true),
-                _buildTextField('Harga Barang', _hargaController, isNumeric: true, prefix: 'Rp. '),
+                _buildTextField('Stok Barang', _stokController),
+                _buildTextField('Harga Barang', _hargaController,
+                    isNumeric: true, prefix: 'Rp. '),
                 _buildDropdown(),
-                SizedBox(height: 40),
+                SizedBox(height: 50),
                 _buildSubmitButton(screenWidth, screenHeight),
               ],
             ),
@@ -61,7 +62,8 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isNumeric = false, String? prefix}) {
+  Widget _buildTextField(String label, TextEditingController controller,
+      {bool isNumeric = false, String? prefix}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -99,9 +101,13 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
             if (value == null || value.isEmpty) {
               return 'Field ini tidak boleh kosong';
             }
+            if (isNumeric && int.tryParse(value) == null) {
+              return 'Field ini hanya boleh berisi angka';
+            }
             return null;
           },
         ),
+        SizedBox(height: 20),
       ],
     );
   }
@@ -122,7 +128,10 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
         SizedBox(height: 10),
         DropdownButtonFormField<String>(
           value: _selectedSatuan,
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
           decoration: InputDecoration(
             enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey),
@@ -133,8 +142,15 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
             isDense: true,
             contentPadding: EdgeInsets.symmetric(vertical: 8),
           ),
-          items: <String>['Kg', 'Liter', 'Pcs', 'Box', 'Botol', 'Rim', 'Kantong']
-              .map<DropdownMenuItem<String>>(
+          items: <String>[
+            'Kg',
+            'Liter',
+            'Pcs',
+            'Box',
+            'Botol',
+            'Rim',
+            'Kantong'
+          ].map<DropdownMenuItem<String>>(
             (String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -159,7 +175,7 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
         GestureDetector(
           onTap: _submitForm,
           child: Container(
-            width: screenWidth * 0.4,
+            width: screenWidth * 0.8,
             height: screenHeight * 0.08,
             decoration: ShapeDecoration(
               color: Color(0xFF3FA2F6),
@@ -197,7 +213,7 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
       try {
         final response = await _supabase.from('tbl_produk').insert({
           'Nama_Produk': _namaController.text,
-          'Stok_Produk': int.parse(_stokController.text),
+          'Stok_Produk': _stokController.text, // Changed to text
           'Harga_Produk': int.parse(_hargaController.text),
           'Satuan': _selectedSatuan,
         }).execute();
@@ -206,7 +222,7 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Barang berhasil ditambahkan')),
           );
-          Navigator.pushNamed(context, 'dashboardadmindPage');  // Return true to indicate success
+          Navigator.pushNamed(context, 'dashboardadmindPage');
         } else {
           throw Exception(response.data!.message);
         }

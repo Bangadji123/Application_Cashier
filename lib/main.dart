@@ -4,7 +4,7 @@ import 'package:application_cashier/Admin/Page/DasboardAdminPage.dart';
 import 'package:application_cashier/Admin/Page/EditBarangAdminPage.dart';
 import 'package:application_cashier/Admin/Page/TambahBarangAdminPage.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart'; // Tambahkan import Supabase
+import 'package:supabase_flutter/supabase_flutter.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
