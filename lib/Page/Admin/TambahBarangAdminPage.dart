@@ -12,6 +12,7 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
   final _stokController = TextEditingController();
   final _hargaController = TextEditingController();
   String _selectedSatuan = 'Pcs';
+  bool _isLoading = false;
 
   final _supabase = Supabase.instance.client;
 
@@ -210,6 +211,9 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
       try {
         final response = await _supabase.from('tbl_produk').insert({
           'Nama_Produk': _namaController.text,
@@ -222,7 +226,7 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Barang berhasil ditambahkan')),
           );
-          Navigator.pushNamed(context, 'dashboardadmindPage');
+          Navigator.pushNamed(context, 'dashboardadminPage');
         } else {
           throw Exception(response.data!.message);
         }
@@ -230,6 +234,10 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
         );
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });         
       }
     }
   }

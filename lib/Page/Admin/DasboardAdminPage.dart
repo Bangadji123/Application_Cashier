@@ -1,7 +1,7 @@
-import 'package:application_cashier/Admin/Page/EditBarangAdminPage.dart';
+import 'package:application_cashier/Page/Admin/EditBarangAdminPage.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:application_cashier/Admin/Widget/Sidebar.dart';
+import 'package:application_cashier/Page/Admin/SidebarAdmin.dart';
 
 class DashboardAdminPage extends StatefulWidget {
   @override
@@ -74,11 +74,11 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: SidebarAdmin(),
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          'Dashboard',
+          'Dashboard Admin',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,

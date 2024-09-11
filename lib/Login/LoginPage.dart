@@ -1,7 +1,7 @@
+import 'package:application_cashier/Page/Petugas/DashboardPetugasPage.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:application_cashier/Admin/Page/DasboardAdminPage.dart';
-import 'package:application_cashier/Login_&_Register/RegisterPage.dart';
+import 'package:application_cashier/Page/Admin/DasboardAdminPage.dart';
 
 class LoginAdminPage extends StatefulWidget {
   const LoginAdminPage({Key? key}) : super(key: key);
@@ -14,10 +14,14 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscureText = true; // This controls the visibility of the password
+  bool _obscureText = true;
+  bool _isLoading = false;
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
       try {
         final response = await Supabase.instance.client
             .from('tbl_adminpetugas')
@@ -27,17 +31,35 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
             .limit(1);
 
         if (response.isNotEmpty) {
+          final user = response[0];
+          final role = user['Role'] as String;
+
           _showPopup('Login successful');
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => DashboardAdminPage()),
-          );
+
+          // Navigate based on user role
+          if (role == 'Admin') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => DashboardAdminPage()),
+            );
+          } else if (role == 'Petugas') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => DashboardPetugasPage()),
+            );
+          } else {
+            _showPopup('Unknown user role');
+          }
         } else {
           _showPopup('Invalid username or password');
         }
       } catch (e) {
         print('Login error: $e');
         _showPopup('Error: ${e.toString()}');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -129,7 +151,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                           horizontal: 20,
                         ),
                         suffixIcon: Padding(
-                          padding: const EdgeInsets.only(right: 10), // Add space to the right
+                          padding: const EdgeInsets.only(right: 10),
                           child: IconButton(
                             icon: Icon(
                               _obscureText
@@ -153,7 +175,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                       },
                     ),
 
-                    // Login Btn
+                    // Login Button
                     SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _login,
@@ -176,43 +198,10 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                         ),
                       ),
                     ),
-
-                    // Register Btn
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'Belum Punya Akun?',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RegisterPage(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            'Register',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
+
             ),
           ),
         ),

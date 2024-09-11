@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class Sidebar extends StatelessWidget {
+class SidebarAdmin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -29,7 +29,9 @@ class Sidebar extends StatelessWidget {
                 leading: Icon(Icons.person, size: constraints.maxWidth * 0.1),
                 title: Text('Tambah User',
                     style: TextStyle(fontSize: constraints.maxWidth * 0.05)),
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, 'daftaruserPage');
+                },
               ),
               ListTile(
                 leading: Icon(Icons.add, size: constraints.maxWidth * 0.1),

@@ -48,7 +48,7 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
             .from('tbl_produk')
             .update({
               'Nama_Produk': _namaController.text,
-              'Stok_Produk': _stokController.text, // Changed to text
+              'Stok_Produk': _stokController.text,
               'Harga_Produk': int.parse(_hargaController.text),
               'Satuan': _selectedSatuan,
             })
