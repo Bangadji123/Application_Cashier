@@ -2,6 +2,8 @@ import 'package:application_cashier/Page/Petugas/SidebarPetugas.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'DetailPesananPetugasPage.dart';
+
 class DashboardPetugasPage extends StatefulWidget {
   const DashboardPetugasPage({super.key});
 
@@ -15,6 +17,8 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
   List<Map<String, dynamic>> _filteredProducts = [];
   bool _isLoading = true;
   TextEditingController _searchController = TextEditingController();
+  Map<int, int> _selectedProducts = {};
+  double _totalAmount = 0.0;
 
   @override
   void initState() {
@@ -87,6 +91,17 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
         final searchLower = query.toLowerCase();
         return nameLower.contains(searchLower);
       }).toList();
+    });
+  }
+
+  void _updateTotal() {
+    double total = 0.0;
+    _selectedProducts.forEach((productId, quantity) {
+      final product = _products.firstWhere((p) => p['id'] == productId);
+      total += (product['Harga_Produk'] ?? 0) * quantity;
+    });
+    setState(() {
+      _totalAmount = total;
     });
   }
 
@@ -166,54 +181,49 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
         child: Row(
           children: [
             Expanded(
-              child: CheckboxListTile(
-                title: Text(
-                  'Semua',
+              child: Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Text(
+                  'Total: Rp. ${_totalAmount.toStringAsFixed(0)}',
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black.withOpacity(0.8),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red,
                   ),
                 ),
-                value: false, // You'll need to manage this state
-                onChanged: (bool? value) {
-                  // Handle checkbox state change
-                },
-                controlAffinity: ListTileControlAffinity.leading,
               ),
             ),
-            SizedBox(width: 10),
-            Text(
-              'Rp.',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.red,
-              ),
-            ),
-            SizedBox(width: 10),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
+              padding: EdgeInsets.only(right: 20),
               child: ElevatedButton(
-                child: Text(
-                  'Konfirm',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white),
-                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
+                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  textStyle: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                onPressed: () {
-                  // Handle confirm button press
-                },
+                child: Text(
+                  'Konfirm',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: _selectedProducts.isEmpty
+                    ? null
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DetailPesananPage(
+                              selectedProducts: _selectedProducts,
+                              products: _products,
+                              totalAmount: _totalAmount,
+                            ),
+                          ),
+                        );
+                      },
               ),
             ),
-            SizedBox(width: 10),
           ],
         ),
       ),
@@ -221,6 +231,12 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
   }
 
   Widget _buildProductCard(Map<String, dynamic> product, double screenWidth) {
+    final productId = product['id'];
+    final quantity = _selectedProducts[productId] ?? 0;
+    final hargaSatuan = num.tryParse(product['Harga_Produk'].toString()) ?? 0;
+    final stok = num.tryParse(product['Stok_Produk'].toString()) ?? 0;
+    final totalHarga = hargaSatuan * quantity;
+
     return Card(
       color: Colors.white,
       elevation: 4, // Increased elevation for more pronounced shadow
@@ -231,50 +247,201 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
       shadowColor: Colors.grey.withOpacity(0.5), // Added shadow color
       child: Padding(
         padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Text(
-              product['Nama_Produk'] ?? '',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product['Nama_Produk']?.toString() ?? '',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    'Stok: ${product['Stok_Produk']?.toString() ?? '0'} ${product['Satuan']?.toString() ?? ''}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black.withOpacity(0.8),
+                    ),
+                  ),
+                  Text(
+                    'Rp. ${product['Harga_Produk']?.toString() ?? '0'}/${product['Satuan']?.toString() ?? 'pcs'}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black.withOpacity(0.8),
+                    ),
+                  ),
+                  Text(
+                    'Total: Rp. ${totalHarga.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
-            SizedBox(height: 4),
-            Text(
-              'Stok: ${product['Stok_Produk'] ?? '0'} ${product['Satuan'] ?? ''}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black.withOpacity(0.8),
-              ),
-            ),
-            SizedBox(height: 2),
-            Text(
-              'Rp. ${product['Harga_Produk'] ?? 0}/${product['Satuan'] ?? 'pcs'}',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.black.withOpacity(0.8),
-              ),
-            ),
-            Divider(),
-            SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _buildCircularButton(Icons.remove, () {
-                  // Implement decrease quantity logic
-                }),
-                SizedBox(width: 16),
-                Text(
-                  '1', // This should be a variable to track quantity
-                  style: TextStyle(fontSize: 16),
+                IconButton(
+                  icon: Icon(Icons.remove_circle_outline),
+                  color: quantity > 0 ? Colors.blue : Colors.grey,
+                  onPressed: quantity > 0
+                      ? () async {
+                          setState(() {
+                            if (_selectedProducts[productId] != null &&
+                                _selectedProducts[productId]! > 0) {
+                              _selectedProducts[productId] =
+                                  _selectedProducts[productId]! - 1;
+
+                              _products = _products.map((p) {
+                                if (p['id'] == productId) {
+                                  p['Stok_Produk'] = (num.tryParse(
+                                              p['Stok_Produk'].toString()) ??
+                                          0) +
+                                      1;
+                                }
+                                return p;
+                              }).toList();
+
+                              if (_selectedProducts[productId] == 0) {
+                                _selectedProducts.remove(productId);
+                              }
+                              _updateTotal();
+
+                              _supabase
+                                  .from('tbl_produk')
+                                  .update({'Stok_Produk': stok + 1})
+                                  .eq('id', productId)
+                                  .execute();
+                            }
+                          });
+                        }
+                      : null,
                 ),
-                SizedBox(width: 16),
-                _buildCircularButton(Icons.add, () {
-                  // Implement increase quantity logic
-                }),
+                GestureDetector(
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        String inputValue = quantity.toString();
+                        TextEditingController inputController =
+                            TextEditingController(text: inputValue);
+                        return AlertDialog(
+                          title: Text('Masukkan Jumlah'),
+                          content: TextField(
+                            keyboardType: TextInputType.number,
+                            controller: inputController,
+                            onChanged: (value) {
+                              inputValue = value;
+                            },
+                            decoration: InputDecoration(
+                              hintText: 'Jumlah produk',
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('Batal'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                final newQuantity =
+                                    int.tryParse(inputValue) ?? 0;
+                                if (newQuantity >= 0) {
+                                  setState(() {
+                                    if (newQuantity == 0) {
+                                      _selectedProducts.remove(productId);
+                                    } else {
+                                      _selectedProducts[productId] =
+                                          newQuantity;
+                                    }
+
+                                    // Update stok produk
+                                    final selisih = newQuantity - quantity;
+                                    final newStok = stok - selisih;
+
+                                    if (newStok >= 0) {
+                                      _products = _products.map((p) {
+                                        if (p['id'] == productId) {
+                                          p['Stok_Produk'] = newStok;
+                                        }
+                                        return p;
+                                      }).toList();
+
+                                      _supabase
+                                          .from('tbl_produk')
+                                          .update({'Stok_Produk': newStok})
+                                          .eq('id', productId)
+                                          .execute();
+
+                                      _updateTotal();
+                                      Navigator.pop(context);
+                                    } else {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content:
+                                              Text('Stok tidak mencukupi!'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  });
+                                }
+                              },
+                              child: Text('OK'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  child: Container(
+                    width: 40,
+                    alignment: Alignment.center,
+                    child: Text(
+                      quantity.toString(),
+                      style: TextStyle(
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: Icon(Icons.add_circle_outline),
+                  color: stok > 0 ? Colors.blue : Colors.grey,
+                  onPressed: stok > 0
+                      ? () async {
+                          setState(() {
+                            _selectedProducts[productId] = (quantity) + 1;
+
+                            _products = _products.map((p) {
+                              if (p['id'] == productId) {
+                                p['Stok_Produk'] = (num.tryParse(
+                                            p['Stok_Produk'].toString()) ??
+                                        0) -
+                                    1;
+                              }
+                              return p;
+                            }).toList();
+
+                            _updateTotal();
+
+                            _supabase
+                                .from('tbl_produk')
+                                .update({'Stok_Produk': stok - 1})
+                                .eq('id', productId)
+                                .execute();
+                          });
+                        }
+                      : null,
+                ),
               ],
             ),
           ],
@@ -282,18 +449,4 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
       ),
     );
   }
-}
-
-Widget _buildCircularButton(IconData icon, VoidCallback onPressed) {
-  return InkWell(
-    onTap: onPressed,
-    child: Container(
-      padding: EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.black.withOpacity(0.6)),
-      ),
-      child: Icon(icon, size: 15, color: Colors.black.withOpacity(0.8)),
-    ),
-  );
 }

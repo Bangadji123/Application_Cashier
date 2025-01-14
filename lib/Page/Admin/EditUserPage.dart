@@ -62,6 +62,8 @@ class _EditUserPageState extends State<EditUserPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTextField('Username', _nameController),
+                _buildDropdown(),
+                SizedBox(height: 10),
                 if (widget.user != null)
                   CheckboxListTile(
                     title: Text("Ubah Password"),
@@ -73,11 +75,15 @@ class _EditUserPageState extends State<EditUserPage> {
                     },
                   ),
                 if (_isChangingPassword || widget.user == null) ...[
-                  _buildTextField('Current Password', _currentPasswordController, isPassword: true),
-                  _buildTextField('New Password', _passwordController, isPassword: true),
-                  _buildTextField('Konfirmasi New Password', _confirmPasswordController, isPassword: true),
+                  _buildTextField(
+                      'Current Password', _currentPasswordController,
+                      isPassword: true),
+                  _buildTextField('New Password', _passwordController,
+                      isPassword: true),
+                  _buildTextField(
+                      'Konfirmasi New Password', _confirmPasswordController,
+                      isPassword: true),
                 ],
-                _buildDropdown(),
                 SizedBox(height: 50),
                 _buildSubmitButton(screenWidth, screenHeight),
               ],
@@ -88,34 +94,51 @@ class _EditUserPageState extends State<EditUserPage> {
     );
   }
 
-
-  Widget _buildTextField(String label, TextEditingController controller, {bool isPassword = false}) {
+  Widget _buildTextField(String label, TextEditingController controller,
+      {bool isPassword = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: 20),
         Text(
           label,
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black.withOpacity(0.8)),
+          style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.black.withOpacity(0.8)),
         ),
         SizedBox(height: 10),
         TextFormField(
           controller: controller,
-          obscureText: isPassword ? (label == 'Current Password' ? _obscureCurrentPassword : (label == 'New Password' ? _obscurePassword : _obscureConfirmPassword)) : false,
+          obscureText: isPassword
+              ? (label == 'Current Password'
+                  ? _obscureCurrentPassword
+                  : (label == 'New Password'
+                      ? _obscurePassword
+                      : _obscureConfirmPassword))
+              : false,
           style: TextStyle(fontWeight: FontWeight.bold),
           decoration: InputDecoration(
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+            enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey)),
+            focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey)),
             isDense: true,
             contentPadding: EdgeInsets.symmetric(vertical: 8),
             suffixIcon: isPassword
                 ? IconButton(
                     icon: Icon(
                       label == 'Current Password'
-                          ? (_obscureCurrentPassword ? Icons.visibility : Icons.visibility_off)
+                          ? (_obscureCurrentPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off)
                           : (label == 'New Password'
-                              ? (_obscurePassword ? Icons.visibility : Icons.visibility_off)
-                              : (_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off)),
+                              ? (_obscurePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off)
+                              : (_obscureConfirmPassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off)),
                     ),
                     onPressed: () {
                       setState(() {
@@ -153,19 +176,25 @@ class _EditUserPageState extends State<EditUserPage> {
         SizedBox(height: 20),
         Text(
           'Role',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: Colors.black.withOpacity(0.8)),
+          style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.black.withOpacity(0.8)),
         ),
         SizedBox(height: 10),
         DropdownButtonFormField<String>(
           value: _selectedRole,
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
           decoration: InputDecoration(
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Colors.grey)),
+            enabledBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey)),
+            focusedBorder: UnderlineInputBorder(
+                borderSide: BorderSide(color: Colors.grey)),
             isDense: true,
             contentPadding: EdgeInsets.symmetric(vertical: 8),
           ),
-          items: ['Admin', 'Petugas'].map<DropdownMenuItem<String>>((String value) {
+          items: ['Admin', 'Petugas']
+              .map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(value: value, child: Text(value));
           }).toList(),
           onChanged: (String? newValue) {
@@ -195,9 +224,14 @@ class _EditUserPageState extends State<EditUserPage> {
             height: screenHeight * 0.08,
             decoration: ShapeDecoration(
               color: Color(0xFF3FA2F6),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
               shadows: [
-                BoxShadow(color: Color(0x3F000000), blurRadius: 4, offset: Offset(0, 4), spreadRadius: 0),
+                BoxShadow(
+                    color: Color(0x3F000000),
+                    blurRadius: 4,
+                    offset: Offset(0, 4),
+                    spreadRadius: 0),
               ],
             ),
             child: Center(
@@ -205,7 +239,11 @@ class _EditUserPageState extends State<EditUserPage> {
                   ? CircularProgressIndicator(color: Colors.white)
                   : Text(
                       widget.user == null ? 'Register' : 'Update',
-                      style: TextStyle(color: Colors.white, fontSize: 25, fontFamily: 'Lato', fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 25,
+                          fontFamily: 'Lato',
+                          fontWeight: FontWeight.w600),
                     ),
             ),
           ),
@@ -216,7 +254,8 @@ class _EditUserPageState extends State<EditUserPage> {
 
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      if (_isChangingPassword && _passwordController.text != _confirmPasswordController.text) {
+      if (_isChangingPassword &&
+          _passwordController.text != _confirmPasswordController.text) {
         _showPopupDialog('Error', 'New passwords do not match');
         return;
       }
@@ -226,19 +265,35 @@ class _EditUserPageState extends State<EditUserPage> {
       });
 
       try {
-        // Check the number of existing users
-        final existingUsers = await _supabase.from('tbl_adminpetugas').select('id');
-        final userCount = existingUsers.length;
+        // Cek jumlah admin yang ada
+        final adminCount = await _supabase
+            .from('tbl_adminpetugas')
+            .select()
+            .eq('Role', 'Admin')
+            .execute()
+            .then((res) => res.data.length);
 
+        if (widget.user != null) {
+          // Menambahkan logika untuk mencegah perubahan role admin jika hanya tersisa satu admin
+          if (adminCount <= 1 &&
+              widget.user!['Role'] == 'Admin' &&
+              _selectedRole != 'Admin') {
+            _showPopupDialog('Error', 'Tidak dapat mengubah peran pengguna admin terakhir.');
+            return;
+          }
+        }
+
+        // Logika tambahan untuk menambah atau memperbarui pengguna
         if (widget.user == null) {
-          // Adding new user
+          // Menambahkan pengguna baru
           final existingUsernames = await _supabase
               .from('tbl_adminpetugas')
               .select('Nama_Username')
-              .eq('Nama_Username', _nameController.text);
+              .eq('Nama_Username', _nameController.text)
+              .execute();
 
-          if (existingUsernames.isNotEmpty) {
-            _showPopupDialog('Error', 'Username already exists. Please choose a different username.');
+          if (existingUsernames.data.isNotEmpty) {
+            _showPopupDialog('Error', 'Nama pengguna sudah ada. Silakan pilih nama pengguna lain.');
             return;
           }
 
@@ -253,26 +308,7 @@ class _EditUserPageState extends State<EditUserPage> {
             Navigator.of(context).pop();
           });
         } else {
-          // Updating existing user
-          if (userCount <= 1 && widget.user!['Role'] == 'Admin' && _selectedRole != 'Admin') {
-            _showPopupDialog('Error', 'Cannot change the role of the last admin user.');
-            return;
-          }
-
-          // Verify current password if changing password
-          if (_isChangingPassword) {
-            final currentUser = await _supabase
-                .from('tbl_adminpetugas')
-                .select()
-                .eq('id', widget.user!['id'])
-                .single();
-            if (currentUser['Password'] != _currentPasswordController.text) {
-              _showPopupDialog('Error', 'Current password is incorrect.');
-              return;
-            }
-          }
-
-          // Update user information
+          // Memperbarui pengguna yang ada
           final updateData = {
             'Nama_Username': _nameController.text,
             'Role': _selectedRole,
@@ -283,9 +319,13 @@ class _EditUserPageState extends State<EditUserPage> {
             updateData['Konfirm_Password'] = _confirmPasswordController.text;
           }
 
-          await _supabase.from('tbl_adminpetugas').update(updateData).eq('id', widget.user!['id']);
+          await _supabase
+              .from('tbl_adminpetugas')
+              .update(updateData)
+              .eq('id', widget.user!['id'])
+              .execute();
 
-          _showPopupDialog('Success', 'User updated successfully', onDismiss: () {
+          _showPopupDialog('Success', 'Pengguna berhasil diperbarui', onDismiss: () {
             Navigator.of(context).pop();
           });
         }
@@ -299,7 +339,8 @@ class _EditUserPageState extends State<EditUserPage> {
     }
   }
 
-  void _showPopupDialog(String title, String content, {VoidCallback? onDismiss}) {
+  void _showPopupDialog(String title, String content,
+      {VoidCallback? onDismiss}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

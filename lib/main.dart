@@ -2,10 +2,12 @@ import 'package:application_cashier/Login/LoginPage.dart';
 import 'package:application_cashier/Page/Admin/DasboardAdminPage.dart';
 import 'package:application_cashier/Page/Admin/EditBarangAdminPage.dart';
 import 'package:application_cashier/Page/Admin/EditUserPage.dart';
+import 'package:application_cashier/Page/Admin/HistoryPage.dart';
 import 'package:application_cashier/Page/Admin/TambahBarangAdminPage.dart';
 import 'package:application_cashier/Page/Admin/DaftarUserPage.dart';
 import 'package:application_cashier/Page/Admin/TambahUserPage.dart';
 import 'package:application_cashier/Page/Petugas/DashboardPetugasPage.dart';
+// import 'package:application_cashier/Page/Petugas/DetailPesananPetugasPage.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; 
 
@@ -17,6 +19,8 @@ void main() async {
   );
   runApp(MyApp());
 }
+
+
 
 final supabase = Supabase.instance.client;
 
@@ -36,10 +40,49 @@ class MyApp extends StatelessWidget {
         'tambahbarangadminPage':(context) => TambahBarangAdminPage(),
         'daftaruserPage': (context) => DaftarUserPage(),
         'edituserPage': (context) => EditUserPage(user: {},),
+        // 'detaipesananPage': (context) => DetailPesananPage(),
+        'historyPage': (context) => HistoryPage(),      
       },
-      // theme: ThemeData(
-      //   backgroundColor: Colors.white,
-      // ),
+    );
+  }
+}
+
+class MainPage extends StatefulWidget {
+  @override
+  _MainPageState createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  int _selectedIndex = 0;
+  static List<Widget> _pages = <Widget>[
+    DashboardPetugasPage(),
+    HistoryPage(),
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages.elementAt(_selectedIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'History',
+          ),
+        ],
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
     );
   }
 }

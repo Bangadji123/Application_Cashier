@@ -17,7 +17,7 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
   late TextEditingController _hargaController;
   String _selectedSatuan = 'Pcs';
   bool _isLoading = false;
-
+      
   @override
   void initState() {
     super.initState();

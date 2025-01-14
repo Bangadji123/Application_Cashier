@@ -23,7 +23,9 @@ class SidebarAdmin extends StatelessWidget {
                 leading: Icon(Icons.history, size: constraints.maxWidth * 0.1),
                 title: Text('History',
                     style: TextStyle(fontSize: constraints.maxWidth * 0.05)),
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, 'historyPage');
+                },
               ),
               ListTile(
                 leading: Icon(Icons.person, size: constraints.maxWidth * 0.1),

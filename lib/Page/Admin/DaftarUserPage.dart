@@ -207,15 +207,17 @@ class _DaftarUserPageState extends State<DaftarUserPage> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => EditUserPage(user: user),
+                                        builder: (context) =>
+                                            EditUserPage(user: user),
                                       ),
                                     ).then((_) => _refreshUsers());
                                   },
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () => _showDeleteConfirmationDialog(
-                                      context, user['id']),
+                                  onPressed: () =>
+                                      _showDeleteConfirmationDialog(
+                                          context, user['id']),
                                 ),
                               ],
                             ),
@@ -228,9 +230,14 @@ class _DaftarUserPageState extends State<DaftarUserPage> {
               ),
       ),
       floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
         onPressed: () {
-          Navigator.pushNamed(context, 'tambahuserPage').then((_) => _refreshUsers());
+          Navigator.pushNamed(context, 'tambahuserPage')
+              .then((_) => _refreshUsers());
         },
       ),
     );
