@@ -7,8 +7,8 @@ import 'package:application_cashier/Page/Admin/TambahBarangAdminPage.dart';
 import 'package:application_cashier/Page/Admin/DaftarUserPage.dart';
 import 'package:application_cashier/Page/Admin/TambahUserPage.dart';
 import 'package:application_cashier/Page/Petugas/DashboardPetugasPage.dart';
-// import 'package:application_cashier/Page/Petugas/DetailPesananPetugasPage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'; 
 
 void main() async {
@@ -20,13 +20,11 @@ void main() async {
   runApp(MyApp());
 }
 
-
-
 final supabase = Supabase.instance.client;
 
 class MyApp extends StatelessWidget {
   @override 
-  Widget build(BuildContext c0ontext) {
+  Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
@@ -40,7 +38,6 @@ class MyApp extends StatelessWidget {
         'tambahbarangadminPage':(context) => TambahBarangAdminPage(),
         'daftaruserPage': (context) => DaftarUserPage(),
         'edituserPage': (context) => EditUserPage(user: {},),
-        // 'detaipesananPage': (context) => DetailPesananPage(),
         'historyPage': (context) => HistoryPage(),      
       },
     );

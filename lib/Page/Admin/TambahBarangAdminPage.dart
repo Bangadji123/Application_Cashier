@@ -16,6 +16,15 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
 
   final _supabase = Supabase.instance.client;
 
+  String _formatCurrency(int value) {
+    final format = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    return value.toString().replaceAllMapped(format, (Match m) => '${m[1]},');
+  }
+
+  String _unformatCurrency(String value) {
+    return value.replaceAll(RegExp(r'[^\d]'), '');
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -82,8 +91,22 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
           controller: controller,
           style: TextStyle(fontWeight: FontWeight.bold),
           keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+          onChanged: isNumeric
+              ? (value) {
+                  if (value.isNotEmpty) {
+                    final unformattedValue = _unformatCurrency(value);
+                    final formattedValue =
+                        _formatCurrency(int.parse(unformattedValue));
+                    controller.value = TextEditingValue(
+                      text: formattedValue,
+                      selection: TextSelection.collapsed(
+                          offset: formattedValue.length),
+                    );
+                  }
+                }
+              : null,
           decoration: InputDecoration(
-            prefixText: prefix,
+            prefixText: isNumeric ? null : prefix,
             prefixStyle: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 15,
@@ -102,8 +125,11 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
             if (value == null || value.isEmpty) {
               return 'Field ini tidak boleh kosong';
             }
-            if (isNumeric && int.tryParse(value) == null) {
-              return 'Field ini hanya boleh berisi angka';
+            if (isNumeric) {
+              final unformattedValue = _unformatCurrency(value);
+              if (int.tryParse(unformattedValue) == null) {
+                return 'Field ini hanya boleh berisi angka';
+              }
             }
             return null;
           },
@@ -217,27 +243,53 @@ class _TambahBarangAdminPageState extends State<TambahBarangAdminPage> {
       try {
         final response = await _supabase.from('tbl_produk').insert({
           'Nama_Produk': _namaController.text,
-          'Stok_Produk': _stokController.text, // Changed to text
-          'Harga_Produk': int.parse(_hargaController.text),
+          'Stok_Produk': _stokController.text,
+          'Harga_Produk': int.parse(_unformatCurrency(_hargaController.text)),
           'Satuan': _selectedSatuan,
         }).execute();
 
         if (response.data == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Barang berhasil ditambahkan')),
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('Berhasil'),
+                content: Text('Barang berhasil ditambahkan'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      Navigator.pushNamed(context, 'dashboardadminPage');
+                    },
+                    child: Text('OK'),
+                  ),
+                ],
+              );
+            },
           );
-          Navigator.pushNamed(context, 'dashboardadminPage');
         } else {
           throw Exception(response.data!.message);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Gagal'),
+              content: Text('Terjadi kesalahan: ${e.toString()}'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text('OK'),
+                ),
+              ],
+            );
+          },
         );
       } finally {
         setState(() {
           _isLoading = false;
-        });         
+        });
       }
     }
   }

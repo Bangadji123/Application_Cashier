@@ -53,8 +53,11 @@ class _TambahUserPageState extends State<TambahUserPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTextField('Username', _nameController),
-                _buildTextField('Password', _passwordController, isPassword: true),
-                _buildTextField('Konfirmasi Password', _confirmPasswordController, isPassword: true),
+                _buildTextField('Password', _passwordController,
+                    isPassword: true),
+                _buildTextField(
+                    'Konfirmasi Password', _confirmPasswordController,
+                    isPassword: true),
                 _buildDropdown(),
                 SizedBox(height: 50),
                 _buildSubmitButton(screenWidth, screenHeight),
@@ -66,7 +69,8 @@ class _TambahUserPageState extends State<TambahUserPage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool isPassword = false}) {
+  Widget _buildTextField(String label, TextEditingController controller,
+      {bool isPassword = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -82,7 +86,11 @@ class _TambahUserPageState extends State<TambahUserPage> {
         SizedBox(height: 10),
         TextFormField(
           controller: controller,
-          obscureText: isPassword ? (label == 'Password' ? _obscurePassword : _obscureConfirmPassword) : false,
+          obscureText: isPassword
+              ? (label == 'Password'
+                  ? _obscurePassword
+                  : _obscureConfirmPassword)
+              : false,
           style: TextStyle(fontWeight: FontWeight.bold),
           decoration: InputDecoration(
             enabledBorder: UnderlineInputBorder(
@@ -97,8 +105,12 @@ class _TambahUserPageState extends State<TambahUserPage> {
                 ? IconButton(
                     icon: Icon(
                       label == 'Password'
-                          ? (_obscurePassword ? Icons.visibility : Icons.visibility_off)
-                          : (_obscureConfirmPassword ? Icons.visibility : Icons.visibility_off),
+                          ? (_obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off)
+                          : (_obscureConfirmPassword
+                              ? Icons.visibility
+                              : Icons.visibility_off),
                     ),
                     onPressed: () {
                       setState(() {
@@ -226,7 +238,7 @@ class _TambahUserPageState extends State<TambahUserPage> {
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       if (_passwordController.text != _confirmPasswordController.text) {
-        _showPopupDialog('Error', 'Passwords do not match');
+        _showPopupDialog('Gagal', 'Password tidak cocok');
         return;
       }
 
@@ -235,19 +247,17 @@ class _TambahUserPageState extends State<TambahUserPage> {
       });
 
       try {
-        // Check if username already exists
         final existingUsers = await _supabase
             .from('tbl_adminpetugas')
             .select()
             .eq('Nama_Username', _nameController.text);
 
         if (existingUsers.isNotEmpty) {
-          _showPopupDialog('Error',
-              'Username already exists. Please choose a different username.');
+          _showPopupDialog('Gagal',
+              'Nama pengguna sudah ada. Silakan pilih nama pengguna lain.');
           return;
         }
 
-        // Insert the new user if username is unique
         final response = await _supabase.from('tbl_adminpetugas').insert({
           'Nama_Username': _nameController.text,
           'Password': _passwordController.text,
@@ -255,11 +265,11 @@ class _TambahUserPageState extends State<TambahUserPage> {
           'Role': _selectedRole,
         });
 
-        _showPopupDialog('Success', 'Registration successful', onDismiss: () {
-          Navigator.of(context).pop(); // Go back to login page
+        _showPopupDialog('Berhasil', 'Pendaftaran berhasil', onDismiss: () {
+          Navigator.of(context).pop();
         });
       } catch (e) {
-        _showPopupDialog('Error', 'Registration failed: ${e.toString()}');
+        _showPopupDialog('Gagal', 'Pendaftaran gagal: ${e.toString()}');
       } finally {
         setState(() {
           _isLoading = false;

@@ -62,13 +62,27 @@ class _DaftarUserPageState extends State<DaftarUserPage> {
     _fetchUsers();
   }
 
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+  void _showAlert(String title, String message, bool isError) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          backgroundColor: isError ? Colors.red[100] : Colors.green[100],
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  void _showErrorSnackBar(String message) {
+    _showAlert('Peringatan', message, true);
   }
 
   String _censorPassword(String password) {

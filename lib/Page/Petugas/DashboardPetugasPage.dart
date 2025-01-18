@@ -1,6 +1,7 @@
 import 'package:application_cashier/Page/Petugas/SidebarPetugas.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 
 import 'DetailPesananPetugasPage.dart';
 
@@ -66,7 +67,7 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
           return AlertDialog(
             title: Text('Error'),
             content: Text(
-                'Failed to load products. Please check your internet connection and try again.'),
+                'Gagal memuat produk. Silakan periksa koneksi internet Anda dan coba lagi.'),
             actions: <Widget>[
               TextButton(
                 child: Text('OK'),
@@ -102,6 +103,34 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
     });
     setState(() {
       _totalAmount = total;
+    });
+  }
+
+  void _showStockErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text('Stok tidak mencukupi!'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _resetSelectedProducts() {
+    setState(() {
+      _selectedProducts.clear();
+      _totalAmount = 0.0;
+      _loadProducts(); // Memuat ulang data produk
     });
   }
 
@@ -184,7 +213,7 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
               child: Padding(
                 padding: EdgeInsets.only(left: 20),
                 child: Text(
-                  'Total: Rp. ${_totalAmount.toStringAsFixed(0)}',
+                  'Total: Rp. ${NumberFormat('#,###').format(_totalAmount)}',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -218,6 +247,7 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
                               selectedProducts: _selectedProducts,
                               products: _products,
                               totalAmount: _totalAmount,
+                              onTransactionSuccess: _resetSelectedProducts,
                             ),
                           ),
                         );
@@ -269,14 +299,14 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
                     ),
                   ),
                   Text(
-                    'Rp. ${product['Harga_Produk']?.toString() ?? '0'}/${product['Satuan']?.toString() ?? 'pcs'}',
+                    'Rp. ${NumberFormat('#,###').format(hargaSatuan)}/${product['Satuan']?.toString() ?? 'pcs'}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.black.withOpacity(0.8),
                     ),
                   ),
                   Text(
-                    'Total: Rp. ${totalHarga.toStringAsFixed(0)}',
+                    'Total: Rp. ${NumberFormat('#,###').format(totalHarga)}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.red,
@@ -292,33 +322,16 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
                   icon: Icon(Icons.remove_circle_outline),
                   color: quantity > 0 ? Colors.blue : Colors.grey,
                   onPressed: quantity > 0
-                      ? () async {
+                      ? () {
                           setState(() {
                             if (_selectedProducts[productId] != null &&
                                 _selectedProducts[productId]! > 0) {
                               _selectedProducts[productId] =
                                   _selectedProducts[productId]! - 1;
-
-                              _products = _products.map((p) {
-                                if (p['id'] == productId) {
-                                  p['Stok_Produk'] = (num.tryParse(
-                                              p['Stok_Produk'].toString()) ??
-                                          0) +
-                                      1;
-                                }
-                                return p;
-                              }).toList();
-
                               if (_selectedProducts[productId] == 0) {
                                 _selectedProducts.remove(productId);
                               }
                               _updateTotal();
-
-                              _supabase
-                                  .from('tbl_produk')
-                                  .update({'Stok_Produk': stok + 1})
-                                  .eq('id', productId)
-                                  .execute();
                             }
                           });
                         }
@@ -354,45 +367,20 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
                                 final newQuantity =
                                     int.tryParse(inputValue) ?? 0;
                                 if (newQuantity >= 0) {
-                                  setState(() {
-                                    if (newQuantity == 0) {
-                                      _selectedProducts.remove(productId);
-                                    } else {
-                                      _selectedProducts[productId] =
-                                          newQuantity;
-                                    }
-
-                                    // Update stok produk
-                                    final selisih = newQuantity - quantity;
-                                    final newStok = stok - selisih;
-
-                                    if (newStok >= 0) {
-                                      _products = _products.map((p) {
-                                        if (p['id'] == productId) {
-                                          p['Stok_Produk'] = newStok;
-                                        }
-                                        return p;
-                                      }).toList();
-
-                                      _supabase
-                                          .from('tbl_produk')
-                                          .update({'Stok_Produk': newStok})
-                                          .eq('id', productId)
-                                          .execute();
-
+                                  if (newQuantity <= stok) {
+                                    setState(() {
+                                      if (newQuantity == 0) {
+                                        _selectedProducts.remove(productId);
+                                      } else {
+                                        _selectedProducts[productId] =
+                                            newQuantity;
+                                      }
                                       _updateTotal();
-                                      Navigator.pop(context);
-                                    } else {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content:
-                                              Text('Stok tidak mencukupi!'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  });
+                                    });
+                                    Navigator.pop(context);
+                                  } else {
+                                    _showStockErrorDialog();
+                                  }
                                 }
                               },
                               child: Text('OK'),
@@ -415,30 +403,17 @@ class _DashboardPetugasPageState extends State<DashboardPetugasPage> {
                 ),
                 IconButton(
                   icon: Icon(Icons.add_circle_outline),
-                  color: stok > 0 ? Colors.blue : Colors.grey,
-                  onPressed: stok > 0
-                      ? () async {
-                          setState(() {
-                            _selectedProducts[productId] = (quantity) + 1;
-
-                            _products = _products.map((p) {
-                              if (p['id'] == productId) {
-                                p['Stok_Produk'] = (num.tryParse(
-                                            p['Stok_Produk'].toString()) ??
-                                        0) -
-                                    1;
-                              }
-                              return p;
-                            }).toList();
-
-                            _updateTotal();
-
-                            _supabase
-                                .from('tbl_produk')
-                                .update({'Stok_Produk': stok - 1})
-                                .eq('id', productId)
-                                .execute();
-                          });
+                  color: stok > quantity ? Colors.blue : Colors.grey,
+                  onPressed: stok > quantity
+                      ? () {
+                          if (quantity < stok) {
+                            setState(() {
+                              _selectedProducts[productId] = (quantity) + 1;
+                              _updateTotal();
+                            });
+                          } else {
+                            _showStockErrorDialog();
+                          }
                         }
                       : null,
                 ),

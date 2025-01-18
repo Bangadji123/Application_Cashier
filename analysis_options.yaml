@@ -27,6 +27,7 @@ analyzer:
     unused_field: ignore
     unnecessary_null_comparison: ignore
     unused_element: ignore
+    unused_import: ignore
     # avoid_print: false  # Uncomment to disable the `avoid_print` rule
     # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
 

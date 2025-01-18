@@ -6,58 +6,98 @@ class SidebarAdmin extends StatelessWidget {
     return Drawer(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return ListView(
-            padding: EdgeInsets.zero,
+          return Column(
             children: [
-              Container(
-                padding: EdgeInsets.symmetric(
-                  vertical: constraints.maxWidth * 0.05,
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        vertical: constraints.maxWidth * 0.05,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.zero,
+                      ),
+                      child: SizedBox(height: 100),
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.history, size: constraints.maxWidth * 0.1),
+                      title: Text(
+                        'History',
+                        style: TextStyle(
+                          fontSize: constraints.maxWidth * 0.05,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pushNamed(context, 'historyPage');
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.person_add, size: constraints.maxWidth * 0.1),
+                      title: Text(
+                        'Tambah User',
+                        style: TextStyle(
+                            fontSize: constraints.maxWidth * 0.05,
+                            fontWeight: FontWeight.w700),
+                      ),
+                      onTap: () {
+                        Navigator.pushNamed(context, 'daftaruserPage');
+                      },
+                    ),
+                    ListTile(
+                      leading:
+                          Icon(Icons.add, size: constraints.maxWidth * 0.1),
+                      title: Text(
+                        'Tambah Barang',
+                        style: TextStyle(
+                          fontSize: constraints.maxWidth * 0.05,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pushNamed(context, 'tambahbarangadminPage');
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.settings,
+                          size: constraints.maxWidth * 0.1),
+                      title: Text(
+                        'Pengaturan',
+                        style: TextStyle(
+                          fontSize: constraints.maxWidth * 0.05,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      onTap: () {},
+                    ),
+                    SizedBox(height: 100),
+                  ],
                 ),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.zero,
+              ),
+              ListTile(
+                leading: Icon(
+                  Icons.logout,
+                  size: constraints.maxWidth * 0.08,
+                  color: Colors.red,
                 ),
-                child: SizedBox(height: 100), // Placeholder for header
-              ),
-              ListTile(
-                leading: Icon(Icons.history, size: constraints.maxWidth * 0.1),
-                title: Text('History',
-                    style: TextStyle(fontSize: constraints.maxWidth * 0.05)),
-                onTap: () {
-                  Navigator.pushNamed(context, 'historyPage');
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.person, size: constraints.maxWidth * 0.1),
-                title: Text('Tambah User',
-                    style: TextStyle(fontSize: constraints.maxWidth * 0.05)),
-                onTap: () {
-                  Navigator.pushNamed(context, 'daftaruserPage');
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.add, size: constraints.maxWidth * 0.1),
-                title: Text('Tambah Barang',
-                    style: TextStyle(fontSize: constraints.maxWidth * 0.05)),
-                onTap: () {
-                  Navigator.pushNamed(context, 'tambahbarangadminPage');
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.settings, size: constraints.maxWidth * 0.1),
-                title: Text('Pengaturan',
-                    style: TextStyle(fontSize: constraints.maxWidth * 0.05)),
-                onTap: () {},
-              ),
-              Divider(),
-              ListTile(
-                leading: Icon(Icons.logout, size: constraints.maxWidth * 0.1),
-                title: Text('LogOut',
-                    style: TextStyle(fontSize: constraints.maxWidth * 0.05)),
+                title: Text(
+                  'LogOut',
+                  style: TextStyle(
+                    fontSize: constraints.maxWidth * 0.04,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 onTap: () {
                   showLogoutConfirmationDialog(context);
                 },
               ),
+              SizedBox(height: 20),
             ],
           );
         },

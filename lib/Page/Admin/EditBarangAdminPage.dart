@@ -17,7 +17,7 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
   late TextEditingController _hargaController;
   String _selectedSatuan = 'Pcs';
   bool _isLoading = false;
-      
+
   @override
   void initState() {
     super.initState();
@@ -26,8 +26,17 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
     _stokController = TextEditingController(
         text: widget.product['Stok_Produk'] as String? ?? '');
     _hargaController = TextEditingController(
-        text: (widget.product['Harga_Produk'] as int?)?.toString() ?? '');
+        text: _formatCurrency(widget.product['Harga_Produk'] as int? ?? 0));
     _selectedSatuan = widget.product['Satuan'] as String? ?? 'Pcs';
+  }
+
+  String _formatCurrency(int value) {
+    final format = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
+    return value.toString().replaceAllMapped(format, (Match m) => '${m[1]},');
+  }
+
+  String _unformatCurrency(String value) {
+    return value.replaceAll(RegExp(r'[^\d]'), '');
   }
 
   @override
@@ -44,33 +53,27 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
         _isLoading = true;
       });
       try {
-        final response = await Supabase.instance.client
-            .from('tbl_produk')
-            .update({
-              'Nama_Produk': _namaController.text,
-              'Stok_Produk': _stokController.text,
-              'Harga_Produk': int.parse(_hargaController.text),
-              'Satuan': _selectedSatuan,
-            })
-            .eq('id', widget.product['id'])
-            .execute();
+        final response =
+            await Supabase.instance.client.from('tbl_produk').update({
+          'Nama_Produk': _namaController.text,
+          'Stok_Produk': _stokController.text,
+          'Harga_Produk': int.parse(_unformatCurrency(_hargaController.text)),
+          'Satuan': _selectedSatuan,
+        }).match({'id': widget.product['id']}).execute();
 
-        if (response.data == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Barang berhasil diupdate')),
-          );
-          Navigator.pop(context, true);
-        } else {
-          throw Exception(response.data!.message);
+        if (mounted) {
+          _showAlert('Sukses', 'Barang berhasil diupdate', false);
         }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
-        );
+        if (mounted) {
+          _showAlert('Error', 'Terjadi kesalahan: ${e.toString()}', true);
+        }
       } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -86,23 +89,42 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
           .eq('id', widget.product['id'])
           .execute();
 
-      if (response.hashCode == null) {
-        throw Exception(response.data!.message);
+      if (response.status != 200) {
+        _showAlert('Error', 'Terjadi kesalahan saat menghapus data', true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Barang berhasil dihapus')),
-        );
-        Navigator.pop(context, true);
+        _showAlert('Sukses', 'Barang berhasil dihapus', false);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
-      );
+      _showAlert('Error', 'Terjadi kesalahan: ${e.toString()}', true);
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  void _showAlert(String title, String message, bool isError) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(message),
+          backgroundColor: isError ? Colors.red[100] : Colors.green[100],
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (!isError) {
+                  Navigator.pop(context, true);
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -175,8 +197,22 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
           controller: controller,
           style: TextStyle(fontWeight: FontWeight.bold),
           keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+          onChanged: isNumeric
+              ? (value) {
+                  if (value.isNotEmpty) {
+                    final unformattedValue = _unformatCurrency(value);
+                    final formattedValue =
+                        _formatCurrency(int.parse(unformattedValue));
+                    controller.value = TextEditingValue(
+                      text: formattedValue,
+                      selection: TextSelection.collapsed(
+                          offset: formattedValue.length),
+                    );
+                  }
+                }
+              : null,
           decoration: InputDecoration(
-            prefixText: prefix,
+            prefixText: isNumeric ? null : prefix,
             prefixStyle: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 15,
@@ -195,8 +231,11 @@ class _EditBarangAdminPageState extends State<EditBarangAdminPage> {
             if (value == null || value.isEmpty) {
               return 'Field ini tidak boleh kosong';
             }
-            if (isNumeric && int.tryParse(value) == null) {
-              return 'Field ini hanya boleh berisi angka';
+            if (isNumeric) {
+              final unformattedValue = _unformatCurrency(value);
+              if (int.tryParse(unformattedValue) == null) {
+                return 'Field ini hanya boleh berisi angka';
+              }
             }
             return null;
           },

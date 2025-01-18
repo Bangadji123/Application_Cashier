@@ -1,5 +1,6 @@
 import 'package:application_cashier/Page/Admin/EditBarangAdminPage.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:application_cashier/Page/Admin/SidebarAdmin.dart';
 
@@ -27,6 +28,55 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
     super.dispose();
   }
 
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Sukses'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  String formatRupiah(dynamic number) {
+    NumberFormat currencyFormatter = NumberFormat.currency(
+      locale: 'id',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    return currencyFormatter.format(number);
+  }
+
   Future<void> _loadProducts() async {
     setState(() {
       _isLoading = true;
@@ -47,12 +97,10 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
           _isLoading = false;
         });
       } else {
-        throw Exception('No data received');
+        throw Exception('Tidak ada data yang diterima');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi kesalahan: ${e.toString()}')),
-      );
+      _showErrorDialog('Terjadi kesalahan saat memuat data: ${e.toString()}');
       setState(() {
         _isLoading = false;
       });
@@ -193,7 +241,7 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
             left: 20,
             top: 70,
             child: Text(
-              'Rp. ${product['Harga_Produk'] ?? 0}/${product['Satuan'] ?? 'pcs'}',
+              'Rp ${formatRupiah(product['Harga_Produk']).replaceAll('Rp ', '').replaceAll(',00', '')}/${product['Satuan'] ?? 'pcs'}',
               style: TextStyle(
                 color: Colors.black.withOpacity(0.8),
                 fontSize: 15,

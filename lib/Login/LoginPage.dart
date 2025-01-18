@@ -34,7 +34,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
           final user = response[0];
           final role = user['Role'] as String;
 
-          _showPopup('Login successful');
+          _showPopup('Login berhasil');
 
           // Navigate based on user role
           if (role == 'Admin') {
@@ -48,14 +48,14 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
               MaterialPageRoute(builder: (context) => DashboardPetugasPage()),
             );
           } else {
-            _showPopup('Unknown user role');
+            _showPopup('Peran pengguna tidak dikenal');
           }
         } else {
-          _showPopup('Invalid username or password');
+          _showPopup('Username atau password salah');
         }
       } catch (e) {
         print('Login error: $e');
-        _showPopup('Error: ${e.toString()}');
+        _showPopup('Terjadi kesalahan: ${e.toString()}');
       } finally {
         setState(() {
           _isLoading = false;
@@ -69,7 +69,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Notification'),
+          title: Text('Notifikasi'),
           content: Text(message),
           actions: [
             TextButton(
@@ -128,7 +128,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your username';
+                          return 'Silakan masukkan username Anda';
                         }
                         return null;
                       },
@@ -169,7 +169,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                       obscureText: _obscureText,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return 'Silakan masukkan password Anda';
                         }
                         return null;
                       },
@@ -201,7 +201,6 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                   ],
                 ),
               ),
-
             ),
           ),
         ),
@@ -209,7 +208,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
     );
   }
 
-  @override 
+  @override
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();

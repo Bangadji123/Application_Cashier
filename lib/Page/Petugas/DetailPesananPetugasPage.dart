@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
 
 class DetailPesananPage extends StatefulWidget {
   final Map<int, int> selectedProducts;
   final List<Map<String, dynamic>> products;
   final double totalAmount;
+  final VoidCallback onTransactionSuccess;
 
   const DetailPesananPage({
     Key? key,
     required this.selectedProducts,
     required this.products,
     required this.totalAmount,
+    required this.onTransactionSuccess,
   }) : super(key: key);
 
   @override
@@ -62,7 +65,7 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
 
         return _buildOrderItemRow({
           'name': product['Nama_Produk'],
-          'quantity': '${entry.value}x',
+          'quantity': '${entry.value} x',
           'price': 'Rp. $total',
         });
       }).toList(),
@@ -85,7 +88,7 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
               ),
             ),
             Text(
-              'Rp. ${widget.totalAmount.toStringAsFixed(0)}',
+              'Rp. ${NumberFormat('#,###').format(widget.totalAmount)}',
               style: TextStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.w600,
@@ -99,20 +102,71 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
   }
 
   // Tambahkan method untuk menyimpan pesanan
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Berhasil'),
+          content: Text('Transaksi telah berhasil'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                widget.onTransactionSuccess();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Gagal'),
+          content: Text('Terjadi kesalahan saat transaksi: $error'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _savePesanan() async {
     try {
-      // Konversi selectedProducts menjadi format string
       String productDetails = widget.selectedProducts.entries.map((entry) {
         final product = widget.products.firstWhere((p) => p['id'] == entry.key);
         return "${product['Nama_Produk']}:${entry.value}";
       }).join(',');
 
-      // Menggunakan format yang lebih pendek untuk Id_Pesanan
       String shortId =
           DateTime.now().millisecondsSinceEpoch.toString().substring(5, 13);
 
+      // Validasi stok dengan pengecekan null safety yang lebih baik
+      for (var entry in widget.selectedProducts.entries) {
+        final product = widget.products.firstWhere((p) => p['id'] == entry.key);
+        final currentStock =
+            int.tryParse(product['Stok_Produk']?.toString() ?? '0') ?? 0;
+        if (currentStock < entry.value) {
+          throw 'Stok tidak mencukupi untuk ${product['Nama_Produk']}';
+        }
+      }
+
       final pesanan = {
-        'Id_Pesanan': shortId, // ID yang lebih pendek
+        'Id_Pesanan': shortId,
         'Produk': productDetails,
         'Total': widget.totalAmount.toInt(),
         'Nama': selectedPetugas,
@@ -121,35 +175,23 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
       };
 
       // Simpan ke tbl_history
-      final response = await Supabase.instance.client
-          .from('tbl_history')
-          .insert(pesanan)
-          .execute();
+      await Supabase.instance.client.from('tbl_history').insert(pesanan);
 
-      // Update stok produk
+      // Update stok produk dengan pengecekan null safety yang lebih baik
       for (var entry in widget.selectedProducts.entries) {
         final product = widget.products.firstWhere((p) => p['id'] == entry.key);
-        final newStock = product['Stok_Produk'] - entry.value;
+        final currentStock =
+            int.tryParse(product['Stok_Produk']?.toString() ?? '0') ?? 0;
+        final newStock = currentStock - entry.value;
 
         await Supabase.instance.client
             .from('tbl_produk')
-            .update({'Stok_Produk': newStock})
-            .eq('id', entry.key)
-            .execute();
+            .update({'Stok_Produk': newStock}).eq('id', entry.key);
       }
 
-      // Tampilkan pesan sukses
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Transaksi Berhasil')),
-      );
-
-      // Kembali ke halaman sebelumnya
-      Navigator.pop(context);
+      _showSuccessDialog();
     } catch (e) {
-      // Tampilkan pesan error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Transaksi Gagal: $e')),
-      );
+      _showErrorDialog(e.toString());
       print('Error saving order: $e');
     }
   }
@@ -175,7 +217,7 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
             ),
           ),
           Text(
-            item['price'],
+            'Rp. ${NumberFormat('#,###').format(int.parse(item['price'].toString().replaceAll(RegExp(r'[^0-9]'), '')))}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
@@ -195,84 +237,72 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
           // ID Pesanan
           Text(
             'Id Pesanan',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              orderId,
-              style: TextStyle(fontSize: 16),
-            ),
+          Text(
+            orderId,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
           ),
           SizedBox(height: 16),
 
           // Dropdown Nama Petugas
           Text(
-            'Nama',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            'Nama Petugas',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButton<String>(
-              value: selectedPetugas,
-              isExpanded: true,
-              underline: Container(),
-              items: petugasList.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  selectedPetugas = newValue!;
-                });
-              },
-            ),
+          DropdownButton<String>(
+            value: selectedPetugas,
+            isExpanded: true,
+            underline: Container(),
+            items: petugasList.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                selectedPetugas = newValue!;
+              });
+            },
           ),
           SizedBox(height: 16),
 
           // Dropdown Metode Pembayaran
           Text(
             'Pembayaran',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButton<String>(
-              value: selectedPayment,
-              isExpanded: true,
-              underline: Container(),
-              items: paymentMethods.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  selectedPayment = newValue!;
-                });
-              },
-            ),
+          DropdownButton<String>(
+            value: selectedPayment,
+            isExpanded: true,
+            underline: Container(),
+            items: paymentMethods.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                selectedPayment = newValue!;
+              });
+            },
           ),
           SizedBox(height: 20),
         ],

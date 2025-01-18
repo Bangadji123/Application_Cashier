@@ -256,7 +256,7 @@ class _EditUserPageState extends State<EditUserPage> {
     if (_formKey.currentState!.validate()) {
       if (_isChangingPassword &&
           _passwordController.text != _confirmPasswordController.text) {
-        _showPopupDialog('Error', 'New passwords do not match');
+        _showPopupDialog('Gagal', 'Password baru tidak cocok');
         return;
       }
 
@@ -265,7 +265,6 @@ class _EditUserPageState extends State<EditUserPage> {
       });
 
       try {
-        // Cek jumlah admin yang ada
         final adminCount = await _supabase
             .from('tbl_adminpetugas')
             .select()
@@ -274,18 +273,16 @@ class _EditUserPageState extends State<EditUserPage> {
             .then((res) => res.data.length);
 
         if (widget.user != null) {
-          // Menambahkan logika untuk mencegah perubahan role admin jika hanya tersisa satu admin
           if (adminCount <= 1 &&
               widget.user!['Role'] == 'Admin' &&
               _selectedRole != 'Admin') {
-            _showPopupDialog('Error', 'Tidak dapat mengubah peran pengguna admin terakhir.');
+            _showPopupDialog(
+                'Gagal', 'Tidak dapat mengubah peran pengguna admin terakhir.');
             return;
           }
         }
 
-        // Logika tambahan untuk menambah atau memperbarui pengguna
         if (widget.user == null) {
-          // Menambahkan pengguna baru
           final existingUsernames = await _supabase
               .from('tbl_adminpetugas')
               .select('Nama_Username')
@@ -293,7 +290,8 @@ class _EditUserPageState extends State<EditUserPage> {
               .execute();
 
           if (existingUsernames.data.isNotEmpty) {
-            _showPopupDialog('Error', 'Nama pengguna sudah ada. Silakan pilih nama pengguna lain.');
+            _showPopupDialog('Gagal',
+                'Nama pengguna sudah ada. Silakan pilih nama pengguna lain.');
             return;
           }
 
@@ -304,11 +302,10 @@ class _EditUserPageState extends State<EditUserPage> {
             'Role': _selectedRole,
           });
 
-          _showPopupDialog('Success', 'Registration successful', onDismiss: () {
+          _showPopupDialog('Berhasil', 'Pendaftaran berhasil', onDismiss: () {
             Navigator.of(context).pop();
           });
         } else {
-          // Memperbarui pengguna yang ada
           final updateData = {
             'Nama_Username': _nameController.text,
             'Role': _selectedRole,
@@ -325,12 +322,14 @@ class _EditUserPageState extends State<EditUserPage> {
               .eq('id', widget.user!['id'])
               .execute();
 
-          _showPopupDialog('Success', 'Pengguna berhasil diperbarui', onDismiss: () {
+          _showPopupDialog('Berhasil', 'Data pengguna berhasil diperbarui',
+              onDismiss: () {
             Navigator.of(context).pop();
           });
         }
       } catch (e) {
-        _showPopupDialog('Error', '${widget.user == null ? 'Registration' : 'Update'} failed: ${e.toString()}');
+        _showPopupDialog('Gagal',
+            '${widget.user == null ? 'Pendaftaran' : 'Pembaruan'} gagal: ${e.toString()}');
       } finally {
         setState(() {
           _isLoading = false;
