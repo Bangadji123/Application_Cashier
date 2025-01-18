@@ -23,7 +23,7 @@ class DetailPesananPage extends StatefulWidget {
 class _DetailPesananPageState extends State<DetailPesananPage> {
   String selectedPetugas = '';
   String selectedPayment = 'Cash';
-  String orderId = DateTime.now().millisecondsSinceEpoch.toString();
+  String orderId = '';
   List<String> petugasList = [];
   final List<String> paymentMethods = ['Cash', 'QRIS', 'Transfer Bank'];
 
@@ -31,6 +31,14 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
   void initState() {
     super.initState();
     _loadPetugasList();
+    _generateOrderId();
+  }
+
+  void _generateOrderId() {
+    final random = DateTime.now().millisecondsSinceEpoch % 90000000 + 10000000;
+    setState(() {
+      orderId = random.toString();
+    });
   }
 
   Future<void> _loadPetugasList() async {
@@ -152,10 +160,7 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
         return "${product['Nama_Produk']}:${entry.value}";
       }).join(',');
 
-      String shortId =
-          DateTime.now().millisecondsSinceEpoch.toString().substring(5, 13);
-
-      // Validasi stok dengan pengecekan null safety yang lebih baik
+      // Validasi stok
       for (var entry in widget.selectedProducts.entries) {
         final product = widget.products.firstWhere((p) => p['id'] == entry.key);
         final currentStock =
@@ -166,7 +171,7 @@ class _DetailPesananPageState extends State<DetailPesananPage> {
       }
 
       final pesanan = {
-        'Id_Pesanan': shortId,
+        'Id_Pesanan': orderId,
         'Produk': productDetails,
         'Total': widget.totalAmount.toInt(),
         'Nama': selectedPetugas,
